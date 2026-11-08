@@ -1,6 +1,6 @@
 # Sandbar Clock
 
-A shelf clock built from two 8x8 WS2812B panels and an ESP32-C3 SuperMini, with 56 selectable faces, a Wi-Fi setup page and a 3D-printable case.
+A shelf clock built from two 8x8 WS2812B panels and an ESP32-C3 SuperMini, with 64 selectable faces, a Wi-Fi setup page and a 3D-printable case.
 
 ![The assembled case](case/preview/front.png)
 

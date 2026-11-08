@@ -261,7 +261,7 @@ void handleSave() {
 void handleFace() {
   const String value = server.arg("face");
   const long face = value.toInt();
-  if (value.isEmpty() || !isDigit(value[0]) || (face >= FACE_COUNT && face != FACE_SHUFFLE)) {
+  if (value.isEmpty() || !isDigit(value[0]) || face > 255 || (!faceAvailable(face) && face != FACE_SHUFFLE)) {
     server.send(400, "text/plain", "That clock face doesn't exist.");
     return;
   }

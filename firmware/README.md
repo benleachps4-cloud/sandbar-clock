@@ -78,7 +78,6 @@ Open the clock's page and choose a face. The choice takes effect straight away a
 | Digit chase | A small creature stomps each digit as it changes |
 | Seconds bar | Digits with a bar along the bottom that fills every minute |
 | Binary columns | Each digit shown as a column of on and off blocks, read as 8, 4, 2, 1 from the top |
-| Tally marks | The hour in digits, one stroke per 5 minutes, and dots for the extra minutes |
 | Word clock | Scrolls the time in words, to the nearest 5 minutes |
 | Pixel gardener | A small gardener waters each plant in turn, and flowers grow from 06:00 to 18:00 |
 | Code rain | Green streams fall behind the digits |
@@ -94,7 +93,8 @@ Open the clock's page and choose a face. The choice takes effect straight away a
 | Simulations | Ant colony, Predator and prey, Falling sand, Life, Flocking birds, Forest fire, Ripple tank, Crystal growth |
 | Self-playing games | Paddle duel, Brick smasher, Runner, Space defender, Maze solver, Grazing worm, Block builder |
 | Scenes | Day to night, Train journey, Space mission, Seasons, Pixel pet, Little town, Haunted house |
-| Other ways to show time | Analogue clock, Digit morph, Pendulum, Marble run, Gears |
+| Other ways to show time | Digit morph, Pendulum |
+| Retro | Red LED alarm, Vacuum display, Nixie tubes, Twin-bell alarm, which rings for the first 12 seconds of each hour, Clock radio, Pocket LCD, Flip-card bedside, Neon sign, TV test card, Amber terminal, Hi-fi VU meter, Bubble LED calculator |
 | Live data | Weather window, Real sun and moon, Tide line. Set your location on the page first |
 | Shuffle | Picks a different face every hour |
 

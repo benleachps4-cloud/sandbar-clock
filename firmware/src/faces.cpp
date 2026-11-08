@@ -59,15 +59,6 @@ constexpr uint8_t SECONDS_BAR_ROW = ROWS - 1;
 constexpr uint8_t BINARY_COLUMNS[4] = {1, 4, 9, 12};
 constexpr uint8_t BINARY_WIDTH = 2;
 constexpr uint8_t BINARY_BIT_ROWS = 2;
-constexpr uint8_t TALLY_GROUP_WIDTH = 4;
-constexpr uint8_t TALLY_GROUPS_PER_LINE = 2;
-constexpr uint8_t TALLY_LINE_HEIGHT = 4;
-constexpr uint8_t TALLY_STROKE_HEIGHT = 3;
-constexpr uint8_t TALLY_STRIKE_ROWS[4] = {2, 1, 1, 0};
-constexpr uint8_t TALLY_LEFT = 8;
-constexpr uint8_t TALLY_MINUTES_PER_STROKE = 5;
-constexpr uint8_t TALLY_DIGIT_TOP = 1;
-constexpr uint8_t TALLY_EXTRA_ROW = ROWS - 1;
 constexpr uint8_t WORD_TOP = 1;
 constexpr uint16_t WORD_SCROLL_MS = 140;
 constexpr uint8_t WORD_BUFFER = 44;
@@ -924,31 +915,6 @@ void drawBinary(const ClockTime &clock, const uint8_t digits[4], const Palette &
   }
 }
 
-// ---- Tally marks -------------------------------------------------------------------
-
-// The hour stays as normal digits. Each stroke is 5 minutes, and dots along the bottom count the rest.
-void drawTally(const ClockTime &clock, const uint8_t digits[4], uint32_t now, const Palette &palette) {
-  drawDigit(digits[0], DIGIT_COLUMNS[0], TALLY_DIGIT_TOP, palette.digit);
-  drawDigit(digits[1], DIGIT_COLUMNS[1], TALLY_DIGIT_TOP, palette.digit);
-
-  const uint8_t strokes = clock.minute / TALLY_MINUTES_PER_STROKE;
-  for (uint8_t s = 0; s < strokes; s++) {
-    const uint8_t group = s / 5;
-    const uint8_t stroke = s % 5;
-    const uint8_t left = TALLY_LEFT + (group % TALLY_GROUPS_PER_LINE) * TALLY_GROUP_WIDTH;
-    const uint8_t top = (group / TALLY_GROUPS_PER_LINE) * TALLY_LINE_HEIGHT;
-    CRGB color = stroke == 4 ? palette.digit : palette.band[group % 2];  // Groups touch, so they alternate colour.
-    if (s == strokes - 1) color.nscale8(120 + scale8(sin8(now / 4), 135));  // The newest stroke pulses.
-    if (stroke < 4) {
-      for (uint8_t y = 0; y < TALLY_STROKE_HEIGHT; y++) setPixel(left + stroke, top + y, color);
-    } else {
-      for (uint8_t k = 0; k < 4; k++) setPixel(left + k, top + TALLY_STRIKE_ROWS[k], color);
-    }
-  }
-  const uint8_t extra = clock.minute % TALLY_MINUTES_PER_STROKE;
-  for (uint8_t i = 0; i < extra; i++) setPixel(TALLY_LEFT + i * 2, TALLY_EXTRA_ROW, palette.band[1]);
-}
-
 // ---- Word clock --------------------------------------------------------------------
 
 uint8_t letterWidth(char letter) { return letter == 'M' || letter == 'W' ? WIDE_LETTER_WIDTH : DIGIT_WIDTH; }
@@ -1301,7 +1267,7 @@ void activateFace(uint8_t face, const ClockTime &clock, const uint8_t digits[4],
   activeFace = face;
   resetDigitChange(digits);
   resetAnimations(clock, now);
-  if (face >= FACE_COMPLEX_FIRST) complexFaceReset(face - FACE_COMPLEX_FIRST, clock, now);
+  if (face >= FACE_COMPLEX_FIRST && face < FACE_RETRO_FIRST) complexFaceReset(face - FACE_COMPLEX_FIRST, clock, now);
   digitSandActive = false;
   draining = false;
   resetSand(clock.minute / MINUTES_PER_GRAIN);
@@ -1310,15 +1276,18 @@ void activateFace(uint8_t face, const ClockTime &clock, const uint8_t digits[4],
 }
 
 uint8_t pickDifferentFace(uint8_t current) {
-  uint8_t face = random8(FACE_COUNT - 1);
-  return face >= current ? face + 1 : face;
+  uint8_t face;
+  do {
+    face = random8(FACE_COUNT);
+  } while (face == current || !faceAvailable(face));
+  return face;
 }
 
 void chooseFace(uint8_t selection, const ClockTime &clock, const uint8_t digits[4], uint32_t now) {
   if (selection != lastSelection) {
     lastSelection = selection;
     shuffleHour = clock.hour;
-    const uint8_t face = selection == FACE_SHUFFLE ? (activeFace < FACE_COUNT ? pickDifferentFace(activeFace) : random8(FACE_COUNT)) : selection;
+    const uint8_t face = selection == FACE_SHUFFLE ? pickDifferentFace(activeFace) : selection;
     activateFace(face, clock, digits, now);
     return;
   }
@@ -1331,6 +1300,15 @@ void chooseFace(uint8_t selection, const ClockTime &clock, const uint8_t digits[
 
 }  // namespace
 
+bool faceAvailable(uint8_t face) {
+  static constexpr uint8_t RETIRED[4] = {FACE_RETIRED_TALLY, FACE_COMPLEX_FIRST + 22, FACE_COMPLEX_FIRST + 25, FACE_COMPLEX_FIRST + 26};
+  if (face >= FACE_COUNT) return false;
+  for (uint8_t retired : RETIRED) {
+    if (face == retired) return false;
+  }
+  return true;
+}
+
 void facesBegin() {
   buildSlots();
   resetSand(0);
@@ -1340,7 +1318,7 @@ void facesBegin() {
 void facesUpdate(uint8_t selection, uint8_t brightnessPercent, const ClockTime &clock, uint32_t now) {
   uint8_t digits[4];
   splitDigits(clock, digits);
-  chooseFace(selection < FACE_COUNT || selection == FACE_SHUFFLE ? selection : FACE_SANDBAR, clock, digits, now);
+  chooseFace(faceAvailable(selection) || selection == FACE_SHUFFLE ? selection : FACE_SANDBAR, clock, digits, now);
 
   const Palette &palette = paletteFor(clock.hour);
   // Night keeps the same proportion of the daytime brightness as the two defaults in config.h.
@@ -1390,10 +1368,6 @@ void facesUpdate(uint8_t selection, uint8_t brightnessPercent, const ClockTime &
     case FACE_BINARY:
       resetDigitChange(digits);
       drawBinary(clock, digits, palette);
-      break;
-    case FACE_TALLY:
-      resetDigitChange(digits);
-      drawTally(clock, digits, now, palette);
       break;
     case FACE_WORDS:
       resetDigitChange(digits);
@@ -1445,7 +1419,9 @@ void facesUpdate(uint8_t selection, uint8_t brightnessPercent, const ClockTime &
       break;
     default:
       resetDigitChange(digits);
-      if (activeFace >= FACE_COMPLEX_FIRST) {
+      if (activeFace >= FACE_RETRO_FIRST) {
+        retroFaceDraw(activeFace - FACE_RETRO_FIRST, clock, digits, now);
+      } else if (activeFace >= FACE_COMPLEX_FIRST) {
         complexFaceDraw(activeFace - FACE_COMPLEX_FIRST, clock, digits, now, palette);
       } else {
         drawSandbar(clock, digits, now, palette);

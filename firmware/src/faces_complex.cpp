@@ -893,50 +893,6 @@ void haunted(const ClockTime &clock, const uint8_t digits[4], uint32_t now, cons
   drawTime(clock, digits, 0, palette.digit, palette);
 }
 
-// ---- 22 and 26: Left-hand dials with the time on the right --------------------------------------------------------
-
-void drawRightTime(const ClockTime &clock, uint32_t now, const Palette &palette) {
-  const bool showHours = (now / 4000) % 2 == 0;
-  const int shown = showHours ? clock.hour : clock.minute;
-  const CRGB color = showHours ? palette.digit : palette.band[1];
-  drawDigit(shown / 10, 9, 1, color);
-  drawDigit(shown % 10, 13, 1, color);
-}
-
-void analogue(const ClockTime &clock, uint32_t now, const Palette &palette) {
-  const float cx = 3.5f, cy = 3.5f;
-  for (uint8_t hour = 0; hour < 12; hour += 3) {
-    const float a = hour * TWO_PI / 12;
-    setPixel(roundf(cx + sinf(a) * 3.6f), roundf(cy - cosf(a) * 3.6f), CRGB(40, 34, 28));
-  }
-  const float minuteAngle = (clock.minute + clock.second / 60.0f) * TWO_PI / 60;
-  const float hourAngle = ((clock.hour % 12) + clock.minute / 60.0f) * TWO_PI / 12;
-  drawLine(cx, cy, cx + sinf(minuteAngle) * 3.4f, cy - cosf(minuteAngle) * 3.4f, palette.band[0]);
-  drawLine(cx, cy, cx + sinf(hourAngle) * 2.0f, cy - cosf(hourAngle) * 2.0f, palette.digit);
-  const float secondAngle = clock.second * TWO_PI / 60;
-  setPixel(roundf(cx + sinf(secondAngle) * 3.6f), roundf(cy - cosf(secondAngle) * 3.6f), CRGB(200, 30, 30));
-  drawRightTime(clock, now, palette);
-}
-
-void drawGear(float cx, float cy, float radius, uint8_t teeth, float angle, CRGB color) {
-  for (uint8_t i = 0; i < 32; i++) {
-    const float a = i * TWO_PI / 32;
-    setPixel(roundf(cx + cosf(a) * radius * 0.65f), roundf(cy + sinf(a) * radius * 0.65f), scaled(color, 120));
-  }
-  for (uint8_t i = 0; i < teeth; i++) {
-    const float a = angle + i * TWO_PI / teeth;
-    setPixel(roundf(cx + cosf(a) * radius), roundf(cy + sinf(a) * radius), color);
-  }
-  setPixel(roundf(cx), roundf(cy), color);
-}
-
-void gears(const ClockTime &clock, uint32_t now, const Palette &palette) {
-  const float seconds = clock.second + clock.millisecond / 1000.0f;
-  drawGear(2.5f, 3.5f, 3.0f, 6, seconds * TWO_PI / 60, palette.band[0]);
-  drawGear(6.8f, 3.5f, 1.6f, 4, -seconds * TWO_PI / 20, palette.band[1]);
-  drawRightTime(clock, now, palette);
-}
-
 // ---- 23: Digit morph --------------------------------------------------------------------------------------------
 
 constexpr uint16_t MORPH_MS = 900;
@@ -990,24 +946,6 @@ void pendulum(const ClockTime &clock, const uint8_t digits[4], const Palette &pa
   const float bobX = 7.5f + swing * 6.5f;
   drawLine(7.5f, 5.0f, bobX, 6.0f, CRGB(90, 60, 22));
   setPixel(roundf(bobX), ROWS - 1, CRGB(235, 180, 60));
-  drawTime(clock, digits, 0, palette.digit, palette);
-}
-
-// ---- 25: Marble run -----------------------------------------------------------------------------------------------
-
-void marbles(const ClockTime &clock, const uint8_t digits[4], uint32_t now, const Palette &palette) {
-  const uint8_t hours = clock.hour % 12;
-  const uint8_t fives = clock.minute / 5;
-  const uint8_t ones = clock.minute % 5;
-  for (uint8_t i = 0; i < hours; i++) setPixel(1 + i, 5, palette.digit);
-  for (uint8_t i = 0; i < fives; i++) setPixel(1 + i, 6, palette.band[0]);
-  for (uint8_t i = 0; i < ones; i++) setPixel(1 + i, 7, palette.band[1]);
-  if (state[0] != clock.minute) {
-    state[0] = clock.minute;
-    timer[0] = now;
-  }
-  const uint32_t rolling = now - timer[0];
-  if (rolling < 1100) setPixel(COLS - 1 - rolling * (COLS - 2 - ones) / 1100, 7, CRGB(255, 255, 255));
   drawTime(clock, digits, 0, palette.digit, palette);
 }
 
@@ -1202,10 +1140,6 @@ void complexFaceReset(uint8_t index, const ClockTime &clock, uint32_t now) {
       value[0] = 2;
       value[1] = 1;
       break;
-    case 25:
-      state[0] = clock.minute;
-      timer[0] = now - 2000;
-      break;
     default:
       break;
   }
@@ -1235,11 +1169,9 @@ void complexFaceDraw(uint8_t index, const ClockTime &clock, const uint8_t digits
     case 19: pixelPet(clock, digits, now, palette); break;
     case 20: littleTown(clock, digits, now, palette); break;
     case 21: haunted(clock, digits, now, palette); break;
-    case 22: analogue(clock, now, palette); break;
+    // 22, 25 and 26 were removed, and faceAvailable() in faces.cpp keeps them from being chosen.
     case 23: morph(clock, digits, now, palette); break;
     case 24: pendulum(clock, digits, palette); break;
-    case 25: marbles(clock, digits, now, palette); break;
-    case 26: gears(clock, now, palette); break;
     case 27: weather(clock, digits, now, palette); break;
     case 28: realSunMoon(clock, digits, now, palette); break;
     default: tide(clock, digits, now, palette); break;

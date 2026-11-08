@@ -143,7 +143,7 @@ const ZONES = [
   ["UTC", "UTC0"],
 ];
 const CUSTOM = "custom";
-// Each number must match the Face enum in faces.h, where complex faces start at 26.
+// Each number must match the Face enum in faces.h, where complex faces start at 26 and retro faces at 56.
 const SHUFFLE = ["Shuffle", 255];
 const FACE_GROUPS = [
   ["Simple and clear", [["Sandbar", 0], ["Big digits", 2], ["Seconds bar", 11], ["Rainbow digits", 20], ["Marquee", 25], ["Word clock", 14]]],
@@ -152,7 +152,8 @@ const FACE_GROUPS = [
   ["Scenes and characters", [["City at night", 9], ["Pixel gardener", 15], ["Train journey", 42], ["Space mission", 43], ["Pixel pet", 45], ["Little town", 46], ["Haunted house", 47], ["Fireworks", 22], ["Starfield", 19], ["Code rain", 16], ["Heartbeat", 21]]],
   ["Simulations", [["Ant colony", 26], ["Predator and prey", 27], ["Falling sand", 28], ["Life", 29], ["Flocking birds", 30], ["Forest fire", 31], ["Ripple tank", 32], ["Crystal growth", 33]]],
   ["Self-playing games", [["Paddle duel", 34], ["Brick smasher", 35], ["Runner", 36], ["Space defender", 37], ["Maze solver", 38], ["Grazing worm", 39]]],
-  ["Other ways to tell time", [["Analogue clock", 48], ["Pendulum", 50], ["Gears", 52], ["Marble run", 51], ["Binary columns", 12], ["Tally marks", 13]]],
+  ["Other ways to tell time", [["Pendulum", 50], ["Binary columns", 12]]],
+  ["Retro", [["Red LED alarm", 56], ["Vacuum display", 57], ["Nixie tubes", 58], ["Twin-bell alarm", 59], ["Clock radio", 60], ["Pocket LCD", 61], ["Flip-card bedside", 62], ["Neon sign", 63], ["TV test card", 64], ["Amber terminal", 65], ["Hi-fi VU meter", 66], ["Bubble LED calculator", 67]]],
   ["Live data", [["Weather window", 53], ["Real sun and moon", 54], ["Tide line", 55]]],
 ];
 let status = {};

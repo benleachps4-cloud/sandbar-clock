@@ -146,7 +146,7 @@ The clock restarts and joins your network. The dot turns green, then the time ap
 
 To reach the settings page, go to `http://sandbar-clock.local` from any device on your network. If that doesn't load, use the clock's IP address, which you can find on your router's device list.
 
-- **Clock face:** choose from 56 faces, grouped by category. **Shuffle** picks a new one every hour.
+- **Clock face:** choose from 64 faces, grouped by category. **Shuffle** picks a new one every hour.
 - **Brightness:** drag the slider. The display still dims automatically at night.
 - **Location:** enter your latitude and longitude for the Weather window, Real sun and moon, and Tide line faces. The clock fetches this data from Open-Meteo.
 

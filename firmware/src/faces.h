@@ -2,6 +2,7 @@
 
 #include "display.h"
 #include "faces_complex.h"
+#include "faces_retro.h"
 
 // These numbers are saved on the clock and listed in setup_page.h, so add new faces at the end.
 enum Face : uint8_t {
@@ -18,7 +19,7 @@ enum Face : uint8_t {
   FACE_CHASE,
   FACE_SECONDS_BAR,
   FACE_BINARY,
-  FACE_TALLY,
+  FACE_RETIRED_TALLY,  // Removed. Its number stays reserved so the faces after it keep theirs.
   FACE_WORDS,
   FACE_GARDENER,
   FACE_CODE_RAIN,
@@ -32,10 +33,14 @@ enum Face : uint8_t {
   FACE_AQUARIUM,
   FACE_MARQUEE,
   FACE_COMPLEX_FIRST,
-  FACE_COUNT = FACE_COMPLEX_FIRST + COMPLEX_FACE_COUNT
+  FACE_RETRO_FIRST = FACE_COMPLEX_FIRST + COMPLEX_FACE_COUNT,
+  FACE_COUNT = FACE_RETRO_FIRST + RETRO_FACE_COUNT
 };
 
 constexpr uint8_t FACE_SHUFFLE = 255;
+
+// False for numbers beyond the end of the list and for faces that have been removed.
+bool faceAvailable(uint8_t face);
 
 void facesBegin();
 void facesUpdate(uint8_t selection, uint8_t brightnessPercent, const ClockTime &clock, uint32_t now);
