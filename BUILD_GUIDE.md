@@ -1,6 +1,6 @@
 # Build your own Sandbar Clock
 
-This guide takes you from a pile of parts to a working clock on your shelf. You'll need basic soldering skills and access to a 3D printer. You don't need to know how to program.
+This guide takes you from a pile of parts to a working clock on your shelf. You'll need basic soldering skills and access to a 3D printer. You don't need to know how to program, and the firmware installs from your web browser.
 
 ![The finished clock](case/preview/front.png)
 
@@ -50,22 +50,14 @@ If your panels have a break-off strip with mounting holes along one edge, remove
 
 ## 2. Install the firmware
 
-You'll put the firmware on the board before wiring anything, so that a problem with the board is easy to spot.
+You'll put the firmware on the board before wiring anything, so that a problem with the board is easy to spot. There's nothing to download, and you only need Chrome or Edge on a computer.
 
-1. Install [Visual Studio Code](https://code.visualstudio.com/), then add the **PlatformIO IDE** extension from its Extensions panel.
-2. Download this project with **Code → Download ZIP** on the repository page, then unzip it.
-3. In VS Code, choose **File → Open Folder** and select the `firmware` folder.
-4. *Recommended:* open `src/config.h` and change `SETUP_NETWORK_PASSWORD` to your own password of at least 8 characters. The default one is published in this guide.
-5. Connect the ESP32-C3 to your computer with a USB-C data cable.
-6. Select the **PlatformIO: Upload** arrow in the bottom bar of VS Code.
+1. Connect the ESP32-C3 to your computer with a USB-C data cable.
+2. Open the **[Sandbar Clock Installer](https://benleachps4-cloud.github.io/sandbar-clock/)**.
+3. Select **Install Sandbar Clock**, choose your board from the list, then select **Connect**.
+4. Follow the prompts. Installing takes about a minute, so leave the board plugged in until it finishes.
 
-The first build downloads several hundred megabytes of tools and can take a good few minutes. It's finished when the terminal shows `SUCCESS`.
-
-If you prefer the command line, run this from the `firmware` folder once PlatformIO is installed:
-
-```bash
-pio run -t upload
-```
+If you'd rather compile it yourself or change the code, see [Building from source](#building-from-source).
 
 ## 3. Wire it up on the bench
 
@@ -109,25 +101,22 @@ USB-C socket        |                       |
 
 ## 4. Check the panel layout
 
-LED panels are wired differently from one maker to the next, so this test matches the firmware to yours.
+LED panels are wired differently from one maker to the next, so the digits may look scrambled at first. You can fix that from your phone.
 
-1. In `firmware/src/config.h`, change `WIRING_TEST` to `true`.
-2. Upload again, as in step 2.
-3. Hold the panels side by side with the LEDs facing you and the left panel (the one wired to the ESP32) on your left.
+1. Lay the panels side by side with the LEDs facing you and the left panel (the one wired to the ESP32) on your left.
+2. Power the board from its own USB port. The display may look wrong, which is fine at this stage.
+3. On your phone or laptop, join the **Sandbar-Clock-Setup** Wi-Fi network. The password is `sandbar1234`.
+4. The clock's page should open by itself. If it doesn't, go to `http://192.168.4.1`.
+5. Open **Panel layout**. The clock now shows an orange **L** and a blue **R**.
+6. Use the buttons until the L reads correctly on the left panel and the R on the right:
 
-Top-left should stay red and bottom-right should stay green. A white dot should walk from left to right along each row, from the top row down. If it doesn't, change these settings in `config.h`, then upload and look again:
+   | What you see | Button |
+   |---|---|
+   | Letters are jumbled, with rows out of line | **Change row order** |
+   | Each letter is on the wrong side | **Swap panels** |
+   | A letter is mirrored, upside down or on its side | **Change left panel** or **Change right panel**. There are 8 options, so keep pressing until it reads correctly |
 
-| What you see | Change |
-|---|---|
-| The dot starts on the right panel | `LEFT_PANEL_FIRST = false` |
-| Every other row runs backwards | Switch `PANEL_SERPENTINE` |
-| The dot moves up and down on one panel | Switch `columns` for that panel in `PANELS` |
-| A panel is mirrored left to right | Switch `flipX` for that panel |
-| A panel is upside down | Switch `flipY` for that panel |
-
-In `PANELS`, the first line is the left panel and the second is the right panel. The settings in this project are for a right panel mounted a quarter-turn from the left one, so yours may well need changing.
-
-**When the dot moves correctly, set `WIRING_TEST` back to `false` and upload one more time.**
+7. Select **Save layout**. The choice stays on the clock, even when it's switched off.
 
 ## 5. Put it in the case
 
@@ -147,7 +136,7 @@ Work from the back of the housing, with its front face down on a soft cloth. Rem
 ## 6. Connect it to Wi-Fi
 
 1. Plug the USB-C socket into your power supply. With no saved network, the clock shows four dashes and a blue dot.
-2. On your phone or laptop, join the **Sandbar-Clock-Setup** Wi-Fi network. The password is `sandbar1234`, unless you changed it in step 2.
+2. Join the **Sandbar-Clock-Setup** network again, using the password `sandbar1234`.
 3. The setup page should open by itself. If it doesn't, go to `http://192.168.4.1`.
 4. Under **Wi-Fi and timezone**, choose your network, enter its password and pick your timezone, then save. The network must be 2.4 GHz.
 
@@ -169,18 +158,34 @@ The page has no login, so anyone on your home network can change the clock's set
 |---|---|
 | No LEDs light up | Check the data wire goes to **DIN** rather than DOUT, that all grounds are connected, and that the panels are getting 5V at their pads |
 | Only the left panel lights | Check the wire from the left panel's DOUT to the right panel's DIN, and that the right panel has 5V and GND |
-| Digits look scrambled | Repeat [step 4](#4-check-the-panel-layout) |
-| The computer doesn't see the board | Try another USB cable, because many only carry power |
-| Upload won't start | Hold **BOOT** on the board, tap **RESET**, release **BOOT**, then upload again |
-| The build stops with `internal compiler error` | Run the upload again. This error comes and goes |
-| Windows blocks the build tools | Smart App Control can stop PlatformIO from running. That's a Windows security setting, so decide for yourself whether to change it, or build on another computer |
+| Digits look scrambled | Open **Panel layout** on the clock's page and repeat [step 4](#4-check-the-panel-layout) |
+| The installer page says this browser can't install | Use Chrome or Edge on a computer. Firefox, Safari and phones can't connect to USB this way |
+| Your board isn't in the installer's list | Try another USB cable, because many only carry power |
+| The installer can't connect to the board | Hold **BOOT** on the board, tap **RESET**, release **BOOT**, then try again |
 | A USB-C to USB-C charger won't power it | Some sockets lack the resistors these chargers look for. Use a USB-A to USB-C cable |
 | The clock can't find the network | It must be 2.4 GHz. The clock opens its setup network again if it can't connect within 20 seconds |
 | `sandbar-clock.local` won't open | Some devices don't support `.local` addresses, so use the IP address |
-| The LEDs flicker or the board restarts | Use a stronger power supply. Leave `MAX_MILLIAMPS` in `config.h` at 1500 or lower for a 2A supply |
+| The LEDs flicker or the board restarts | Use a stronger power supply of at least 5V 2A |
 
 ## Going further
 
-- **Using an ESP32-S3:** add `-e esp32s3` to the upload command and connect the data wire to GPIO 12. Change `-DLED_PIN` in `platformio.ini` to use a different pin. On some S3 boards, the `5V` pin isn't connected unless the `IN-OUT` solder jumper is bridged.
+- **Using an ESP32-S3:** the installer detects it automatically. Connect the data wire to GPIO 12, and use a board with at least 8MB of flash. On some S3 boards, the `5V` pin isn't connected unless the `IN-OUT` solder jumper is bridged.
+- **Updating later:** run the installer again and choose not to erase the board, which keeps your settings. Unplug the USB-C power socket first.
 - **Different panels:** change the dimensions at the top of [`case/generate_case.py`](case/generate_case.py) and run it with FreeCAD's `FreeCADCmd` to generate new parts.
 - **More about the firmware:** see the [firmware README](firmware/README.md).
+
+## Building from source
+
+You only need this if you want to change the code, such as using a different data pin or your own setup password.
+
+1. Install [Visual Studio Code](https://code.visualstudio.com/), then add the **PlatformIO IDE** extension from its Extensions panel.
+2. Download this project with **Code → Download ZIP** on the repository page, then unzip it.
+3. In VS Code, choose **File → Open Folder** and select the `firmware` folder.
+4. Connect the board and select the **PlatformIO: Upload** arrow in the bottom bar.
+
+The first build downloads several hundred megabytes of tools and can take a good few minutes. It's finished when the terminal shows `SUCCESS`.
+
+| Problem | What to try |
+|---|---|
+| The build stops with `internal compiler error` | Run the upload again. This error comes and goes |
+| Windows blocks the build tools | Smart App Control can stop PlatformIO from running. That's a Windows security setting, so decide for yourself whether to change it, or build on another computer |

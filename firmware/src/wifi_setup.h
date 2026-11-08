@@ -14,5 +14,6 @@ bool inSetupMode();
 bool isConnected();
 uint8_t selectedFace();
 uint8_t brightnessPercent();
+bool panelTestActive();
 
 }  // namespace wifi_setup

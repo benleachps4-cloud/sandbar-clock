@@ -35,6 +35,14 @@ extern const Palette NIGHT;
 const Palette &paletteFor(int hour);
 
 void displayBegin();
+
+// The panel layout is one byte, so it's easy to save and send to the web page.
+// Bit 0: left panel is first in the chain. Bit 1: every other line runs backwards.
+// Bits 2-4 are the left panel and bits 5-7 the right: flip X, flip Y, lines run as columns.
+uint8_t displayDefaultLayout();
+uint8_t displayLayout();
+void displaySetLayout(uint8_t layout);
+
 void displayClear(uint8_t brightness);
 void displayShow();
 void setPixel(uint8_t x, uint8_t y, CRGB color);

@@ -8,6 +8,7 @@
 #include <WiFi.h>
 
 #include "config.h"
+#include "display.h"
 #include "faces.h"
 #include "live_data.h"
 #include "setup_page.h"
@@ -17,6 +18,7 @@ namespace {
 constexpr uint32_t CONNECT_TIMEOUT_MS = 20000;
 constexpr uint32_t SETUP_RETRY_MS = 180000;  // Retry the saved network after this long with nobody on setup.
 constexpr uint32_t RESTART_DELAY_MS = 1500;
+constexpr uint32_t PANEL_TEST_TIMEOUT_MS = 300000;  // Back to the clock if the page is left open or closed.
 constexpr uint16_t DNS_PORT = 53;
 constexpr size_t MAX_SSID_LENGTH = 32;
 constexpr size_t MIN_PASSWORD_LENGTH = 8;
@@ -34,6 +36,9 @@ String savedPassword;
 String savedTimezone;
 uint8_t savedFace = FACE_SANDBAR;
 uint8_t brightness = DEFAULT_BRIGHTNESS_PERCENT;
+uint8_t savedLayout = 0;
+bool panelTest = false;
+uint32_t panelTestSeen = 0;
 Mode mode = Mode::Connecting;
 uint32_t modeStart = 0;
 uint32_t lastStationSeen = 0;
@@ -49,6 +54,8 @@ void loadSettings() {
   savedTimezone = prefs.getString("timezone", DEFAULT_TIMEZONE);
   savedFace = prefs.getUChar("face", FACE_SANDBAR);
   brightness = prefs.getUChar("brightness", DEFAULT_BRIGHTNESS_PERCENT);
+  savedLayout = prefs.getUChar("layout", displayDefaultLayout());
+  displaySetLayout(savedLayout);
   const bool hasLocation = prefs.getBool("hasLocation", false);
   const float latitude = prefs.getFloat("latitude", 0);
   const float longitude = prefs.getFloat("longitude", 0);
@@ -69,6 +76,13 @@ void saveBrightness(uint8_t percent) {
   Preferences prefs;
   prefs.begin(PREFS_NAMESPACE, false);
   prefs.putUChar("brightness", percent);
+  prefs.end();
+}
+
+void saveLayout(uint8_t layout) {
+  Preferences prefs;
+  prefs.begin(PREFS_NAMESPACE, false);
+  prefs.putUChar("layout", layout);
   prefs.end();
 }
 
@@ -184,6 +198,9 @@ void handleStatus() {
   json += ",\"face\":" + String(savedFace);
   json += ",\"brightness\":" + String(brightness);
   json += ",\"minBrightness\":" + String(MIN_BRIGHTNESS_PERCENT);
+  json += ",\"layout\":" + String(displayLayout());
+  json += ",\"panelTest\":";
+  json += panelTest ? "true" : "false";
   json += ",\"hasLocation\":";
   json += liveHasLocation() ? "true" : "false";
   json += ",\"latitude\":" + String(liveLatitude(), 3);
@@ -266,6 +283,32 @@ void handleBrightness() {
   server.send(200, "text/plain", "Saved");
 }
 
+// Each change shows on the test pattern straight away. Nothing is kept until "save" arrives.
+void handleLayout() {
+  if (server.hasArg("cancel")) {
+    panelTest = false;
+    displaySetLayout(savedLayout);
+    server.send(200, "text/plain", "Cancelled");
+    return;
+  }
+  const String value = server.arg("value");
+  const long layout = value.toInt();
+  if (value.isEmpty() || !isDigit(value[0]) || layout > 255) {
+    server.send(400, "text/plain", "That panel layout isn't valid.");
+    return;
+  }
+  displaySetLayout(layout);
+  if (server.hasArg("save")) {
+    savedLayout = layout;
+    saveLayout(savedLayout);
+    panelTest = false;
+  } else {
+    panelTest = true;
+    panelTestSeen = millis();
+  }
+  server.send(200, "text/plain", "Saved");
+}
+
 void handleLocation() {
   const float latitude = server.arg("latitude").toFloat();
   const float longitude = server.arg("longitude").toFloat();
@@ -301,6 +344,7 @@ void startServer() {
   server.on("/save", HTTP_POST, handleSave);
   server.on("/face", HTTP_POST, handleFace);
   server.on("/brightness", HTTP_POST, handleBrightness);
+  server.on("/layout", HTTP_POST, handleLayout);
   server.on("/location", HTTP_POST, handleLocation);
   server.on("/forget", HTTP_POST, handleForget);
   server.onNotFound(handleNotFound);
@@ -315,6 +359,7 @@ bool inSetupMode() { return mode == Mode::Setup; }
 bool isConnected() { return WiFi.status() == WL_CONNECTED; }
 uint8_t selectedFace() { return savedFace; }
 uint8_t brightnessPercent() { return brightness; }
+bool panelTestActive() { return panelTest; }
 
 void begin() {
   loadSettings();
@@ -335,6 +380,11 @@ void loop() {
   const uint32_t now = millis();
 
   if (restartRequested && now - restartRequestedAt >= RESTART_DELAY_MS) ESP.restart();
+
+  if (panelTest && now - panelTestSeen >= PANEL_TEST_TIMEOUT_MS) {
+    panelTest = false;
+    displaySetLayout(savedLayout);
+  }
 
   switch (mode) {
     case Mode::Connecting:

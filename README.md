@@ -4,7 +4,7 @@ A shelf clock built from two 8x8 WS2812B panels and an ESP32-C3 SuperMini, with 
 
 ![The assembled case](case/preview/front.png)
 
-**Want to make one?** Follow the [build guide](BUILD_GUIDE.md) for the parts list, printing, wiring, firmware and assembly.
+**Want to make one?** Follow the [build guide](BUILD_GUIDE.md) for the parts list, printing, wiring and assembly. The firmware installs from your browser with the [Sandbar Clock Installer](https://benleachps4-cloud.github.io/sandbar-clock/).
 
 ## What's here
 
@@ -12,6 +12,7 @@ A shelf clock built from two 8x8 WS2812B panels and an ESP32-C3 SuperMini, with 
 - `case/stl/`: the parts to print.
 - `case/generate_case.py`: the FreeCAD script that generates the parts. Dimensions are at the top of the file.
 - `case/sandbar_case_parts.step`: the case parts for use in other CAD software.
+- `docs/`: the browser installer and its ready-made firmware. After changing the firmware, build it and run `tools/package_installer.py` to update them.
 
 ## Printing the case
 

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sandbar Clock Installer</title>
+<script type="module" src="https://unpkg.com/esp-web-tools@10.4.0/dist/web/install-button.js?module"></script>
+<style>
+:root { color-scheme: dark; --wall: #0f2228; --panel: #16303a; --line: #2b4b57; --ink: #e9efe9; --muted: #9db4b6; --sand: #f2b65a; --on-sand: #1d1405; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 40px 16px 56px; background: var(--wall); color: var(--ink); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 560px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { margin: 0 0 8px; font-size: 2rem; line-height: 1.15; color: var(--sand); }
+h2 { margin: 0 0 10px; font-size: 1.05rem; }
+p { margin: 0; }
+a { color: var(--sand); }
+img { display: block; width: 100%; height: auto; border-radius: 6px; }
+ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.box { padding: 20px; background: var(--panel); border-radius: 6px; }
+.muted { color: var(--muted); font-size: 0.92rem; }
+code { color: var(--sand); }
+.install { padding: 13px 22px; font: inherit; font-weight: 650; color: var(--on-sand); background: var(--sand); border: 0; border-radius: 4px; cursor: pointer; }
+.install:focus-visible, a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+esp-web-install-button { --esp-tools-button-color: var(--sand); --esp-tools-button-text-color: var(--on-sand); }
+table { width: 100%; border-collapse: collapse; }
+td, th { padding: 7px 0; text-align: left; border-bottom: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Sandbar Clock Installer</h1>
+    <p>Put the clock's firmware on your ESP32 from this page. There's nothing to download or install.</p>
+  </header>
+
+  <img src="front.png" width="1500" height="1000" alt="The Sandbar Clock showing 12:26 on a sand-coloured stand">
+
+  <section class="box">
+    <h2>Install the firmware</h2>
+    <ol>
+      <li>Connect your board to this computer with a USB data cable. If the clock is already built, unplug its power socket first.</li>
+      <li>Select the button below, choose your board from the list, then select <strong>Connect</strong>.</li>
+      <li>Follow the prompts. Installing takes about a minute. Don't unplug the board until it finishes.</li>
+    </ol>
+    <p style="margin-top:18px">
+      <esp-web-install-button manifest="manifest.json">
+        <button slot="activate" class="install">Install Sandbar Clock</button>
+        <span slot="unsupported">This browser can't install firmware. Open this page in Chrome or Edge on a computer.</span>
+        <span slot="not-allowed">Installing needs a secure connection. Open this page using its <code>https://</code> address.</span>
+      </esp-web-install-button>
+    </p>
+    <p class="muted" style="margin-top:14px">Updating a clock you've already set up? When asked, choose not to erase it, and it keeps your Wi-Fi and settings.</p>
+  </section>
+
+  <section class="box">
+    <h2>Which board and pin?</h2>
+    <table>
+      <tr><th>Board</th><th>LED data pin</th></tr>
+      <tr><td>ESP32-C3 SuperMini</td><td>GPIO 4</td></tr>
+      <tr><td>ESP32-S3 (8MB flash or more)</td><td>GPIO 12</td></tr>
+    </table>
+    <p class="muted" style="margin-top:12px">The installer detects your chip by itself.</p>
+  </section>
+
+  <section class="box">
+    <h2>After installing</h2>
+    <ol>
+      <li>Join the <strong>Sandbar-Clock-Setup</strong> Wi-Fi network. The password is <code>sandbar1234</code>.</li>
+      <li>Open <code>http://192.168.4.1</code> if the page doesn't appear by itself.</li>
+      <li>Open <strong>Panel layout</strong> and follow the steps until the L and R read correctly.</li>
+      <li>Open <strong>Wi-Fi and timezone</strong>, then choose your network and timezone.</li>
+    </ol>
+  </section>
+
+  <p class="muted">The full parts list, wiring and case files are in the <a href="https://github.com/benleachps4-cloud/sandbar-clock/blob/main/BUILD_GUIDE.md">build guide</a>.</p>
+</main>
+</body>
+</html>

@@ -18,6 +18,8 @@ A 16×8 clock for an ESP32-C3 SuperMini and two 8×8 WS2812B panels. An ESP32-S3
 
 ## Setup
 
+The easiest way to install is the [browser installer](https://benleachps4-cloud.github.io/sandbar-clock/), which needs Chrome or Edge on a computer. The steps below are for building from source.
+
 If your data wire is on a different pin, change `-DLED_PIN` for your board in `platformio.ini`.
 
 Build and upload from the PlatformIO panel in VS Code, or run this in the project folder. It builds for the C3 by default:
@@ -43,19 +45,19 @@ If the clock can't join its saved network within 20 seconds of starting up, it o
 
 Change `SETUP_NETWORK_PASSWORD` in `src/config.h` if you don't want to use the default. Like WLED, the settings page has no login, so anyone on your home network can change the clock's Wi-Fi and timezone. The page never shows the saved Wi-Fi password.
 
-## Check the panel wiring
+## Set the panel layout
 
-Set `WIRING_TEST` to `true` and upload. Top-left should stay red and bottom-right should stay green. A white dot should walk left to right along each row, from the top row down.
+Open **Panel layout** on the clock's page. The clock shows an orange L and a blue R, and each button takes effect straight away.
 
-| What you see | Change in `config.h` |
+| What you see | Button |
 |---|---|
-| The dot starts on the right panel | `LEFT_PANEL_FIRST = false` |
-| Every other row runs backwards | Toggle `PANEL_SERPENTINE` |
-| The dot moves vertically on a panel | Toggle `columns` for that panel |
-| A panel is mirrored left to right | Toggle `flipX` for that panel |
-| A panel is upside down | Toggle `flipY` for that panel |
+| Letters are jumbled, with rows out of line | **Change row order** |
+| Each letter is on the wrong side | **Swap panels** |
+| A letter is mirrored, upside down or on its side | **Change left panel** or **Change right panel**, which each have 8 options |
 
-Set `WIRING_TEST` back to `false` when the test looks right.
+Select **Save layout** when both letters read correctly. If you leave the page without saving, the clock goes back to the saved layout after 5 minutes.
+
+The values in `config.h` set the layout for a clock that has never saved one.
 
 ## Clock faces
 

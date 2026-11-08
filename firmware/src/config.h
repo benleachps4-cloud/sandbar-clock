@@ -35,10 +35,7 @@ constexpr uint8_t DUSK_START_HOUR = 17;
 constexpr uint8_t NIGHT_START_HOUR = 22;
 
 // ---- Panel wiring -----------------------------------------------------------
-// Set WIRING_TEST to true, flash, and adjust these until the test looks right.
-// A README section explains what to look for.
-
-constexpr bool WIRING_TEST = false;
+// These are the starting layout only. Panel layout on the clock's page changes it, and the saved choice wins.
 
 constexpr bool LEFT_PANEL_FIRST = true;  // The left panel is the one fed by the ESP32.
 constexpr bool PANEL_SERPENTINE = false;  // Every other line of LEDs runs backwards.

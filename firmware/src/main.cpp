@@ -43,14 +43,18 @@ void renderWaiting(uint32_t now) {
   displayShow();
 }
 
-// The dot should walk left to right along each row, from the top row down.
-// Top-left stays red and bottom-right stays green.
-void renderWiringTest(uint32_t now) {
+// Shown while choosing the panel layout. Neither letter has any symmetry, so each of a panel's
+// eight possible orientations looks different, and only the right one reads correctly.
+void renderPanelTest() {
+  static constexpr uint8_t LETTER_L[ROWS] = {0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x7E, 0x7E};
+  static constexpr uint8_t LETTER_R[ROWS] = {0x7C, 0x66, 0x66, 0x7C, 0x78, 0x6C, 0x66, 0x66};
   displayClear(DAY_BRIGHTNESS);
-  const uint16_t step = (now / 150) % CELLS;
-  setPixel(step % COLS, step / COLS, CRGB::White);
-  setPixel(0, 0, CRGB::Red);
-  setPixel(COLS - 1, ROWS - 1, CRGB::Green);
+  for (uint8_t y = 0; y < ROWS; y++) {
+    for (uint8_t x = 0; x < 8; x++) {
+      if (LETTER_L[y] & (0x80 >> x)) setPixel(x, y, GOLD.band[0]);
+      if (LETTER_R[y] & (0x80 >> x)) setPixel(8 + x, y, CRGB(0, 120, 255));
+    }
+  }
   displayShow();
 }
 
@@ -61,19 +65,19 @@ void setup() {
   displayBegin();
   random16_add_entropy(esp_random());
   facesBegin();
-  if (!WIRING_TEST) wifi_setup::begin();
+  wifi_setup::begin();
 }
 
 void loop() {
-  if (!WIRING_TEST) wifi_setup::loop();
+  wifi_setup::loop();
 
   const uint32_t now = millis();
-  if (!WIRING_TEST) liveDataLoop(now, wifi_setup::isConnected());
+  liveDataLoop(now, wifi_setup::isConnected());
   if (now - lastFrame < FRAME_MS) return;
   lastFrame = now;
 
-  if (WIRING_TEST) {
-    renderWiringTest(now);
+  if (wifi_setup::panelTestActive()) {
+    renderPanelTest();
     return;
   }
 

@@ -34,7 +34,8 @@ button:disabled { opacity: 0.6; }
 .net span:last-child { flex: none; color: var(--muted); font-size: 0.85rem; }
 .pass { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
 .hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
-#error, #faceError { margin: 0; color: var(--bad); }
+#error, #faceError, #panelError { margin: 0; color: var(--bad); }
+#panelBox { display: grid; gap: 8px; margin-top: 16px; }
 #faceList { display: grid; gap: 8px; }
 .faceGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
 .faceGrid .face:last-child:nth-child(odd) { grid-column: 1 / -1; }
@@ -72,6 +73,20 @@ code { color: var(--sand); }
     <button type="button" id="saveLocation">Save location</button>
     <p class="hint" id="locationHint">Your location is sent to Open-Meteo to get weather and tides. A rough location is fine.</p>
   </section>
+
+  <details id="panels">
+  <summary>Panel layout</summary>
+  <div id="panelBox">
+    <p class="hint">The clock now shows an orange L and a blue R. Use the buttons until the L reads correctly on the left panel and the R on the right. Panels are wired differently, so this is normal on a new build.</p>
+    <button type="button" id="zigzag">Letters jumbled? Change row order</button>
+    <button type="button" id="swap">Letters on the wrong sides? Swap panels</button>
+    <button type="button" id="turnLeft"></button>
+    <button type="button" id="turnRight"></button>
+    <p id="panelError" role="alert" hidden></p>
+    <button type="button" class="main" id="saveLayout">Save layout</button>
+    <button type="button" id="cancelLayout">Cancel</button>
+  </div>
+  </details>
 
   <details id="wifi">
   <summary>Wi-Fi and timezone</summary>
@@ -318,7 +333,41 @@ async function post(path, fields) {
   return fetch(path, { method: "POST", body: new URLSearchParams(fields) });
 }
 
+// The layout is one byte: bit 0 panel order, bit 1 row order, bits 2-4 left panel, bits 5-7 right panel.
+let layout = 0;
+let testingPanels = false;
+
+function showPanelButtons() {
+  $("turnLeft").textContent = `Change left panel (option ${((layout >> 2) & 7) + 1} of 8)`;
+  $("turnRight").textContent = `Change right panel (option ${((layout >> 5) & 7) + 1} of 8)`;
+}
+
+async function sendLayout(fields) {
+  $("panelError").hidden = true;
+  try {
+    const response = await post("/layout", fields);
+    if (!response.ok) throw new Error(await response.text());
+    return true;
+  } catch (e) {
+    $("panelError").textContent = "The clock didn't respond. Check you're still on its network, then try again.";
+    $("panelError").hidden = false;
+    return false;
+  }
+}
+
+function changeLayout(next) {
+  layout = next & 255;
+  showPanelButtons();
+  sendLayout({ value: layout });
+}
+
+function nextOption(shift) {
+  const option = (((layout >> shift) & 7) + 1) & 7;
+  changeLayout((layout & ~(7 << shift)) | (option << shift));
+}
+
 function showDone(text) {
+  $("panels").hidden = true;
   $("wifi").hidden = true;
   $("facesBox").hidden = true;
   $("state").textContent = "Restarting…";
@@ -380,6 +429,28 @@ $("saveLocation").addEventListener("click", async () => {
     hint.textContent = response.ok ? "Location saved. Live faces update within a minute." : await response.text();
   } catch (e) {
     hint.textContent = "The clock didn't respond. Check you're still on its network, then try again.";
+  }
+});
+$("zigzag").addEventListener("click", () => changeLayout(layout ^ 2));
+$("swap").addEventListener("click", () => changeLayout(layout ^ 1));
+$("turnLeft").addEventListener("click", () => nextOption(2));
+$("turnRight").addEventListener("click", () => nextOption(5));
+$("saveLayout").addEventListener("click", async () => {
+  if (!await sendLayout({ value: layout, save: 1 })) return;
+  status.layout = layout;
+  testingPanels = false;
+  $("panels").open = false;
+});
+$("cancelLayout").addEventListener("click", () => { $("panels").open = false; });
+// Opening the section starts the test pattern. Closing it without saving goes back to the saved layout.
+$("panels").addEventListener("toggle", () => {
+  if ($("panels").open) {
+    layout = status.layout;
+    testingPanels = true;
+    changeLayout(layout);
+  } else if (testingPanels) {
+    testingPanels = false;
+    sendLayout({ cancel: 1 });
   }
 });
 // Scanning interrupts Wi-Fi briefly, so it only runs when the Wi-Fi section is open.

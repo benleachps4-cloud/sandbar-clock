@@ -16,16 +16,27 @@ constexpr uint8_t FONT[10][DIGIT_HEIGHT] = {
 
 CRGB leds[CELLS];
 
+constexpr uint8_t panelBits(const PanelWiring &panel) {
+  return (panel.flipX ? 1 : 0) | (panel.flipY ? 2 : 0) | (panel.columns ? 4 : 0);
+}
+
+constexpr uint8_t DEFAULT_LAYOUT =
+    (LEFT_PANEL_FIRST ? 1 : 0) | (PANEL_SERPENTINE ? 2 : 0) | (panelBits(PANELS[0]) << 2) | (panelBits(PANELS[1]) << 5);
+
+uint8_t layout = DEFAULT_LAYOUT;
+
 uint16_t ledIndex(uint8_t x, uint8_t y) {
   const uint8_t panel = x / PANEL_SIZE;
-  const uint8_t chainSlot = LEFT_PANEL_FIRST ? panel : 1 - panel;
+  const uint8_t wiring = layout >> (2 + 3 * panel);
+  const uint8_t chainSlot = (layout & 1) ? panel : 1 - panel;
+  const bool columns = wiring & 4;
   uint8_t localX = x % PANEL_SIZE;
   uint8_t localY = y;
-  if (PANELS[panel].flipX) localX = PANEL_SIZE - 1 - localX;
-  if (PANELS[panel].flipY) localY = PANEL_SIZE - 1 - localY;
-  const uint8_t line = PANELS[panel].columns ? localX : localY;
-  uint8_t position = PANELS[panel].columns ? localY : localX;
-  if (PANEL_SERPENTINE && (line & 1)) position = PANEL_SIZE - 1 - position;
+  if (wiring & 1) localX = PANEL_SIZE - 1 - localX;
+  if (wiring & 2) localY = PANEL_SIZE - 1 - localY;
+  const uint8_t line = columns ? localX : localY;
+  uint8_t position = columns ? localY : localX;
+  if ((layout & 2) && (line & 1)) position = PANEL_SIZE - 1 - position;
   return chainSlot * PANEL_SIZE * PANEL_SIZE + line * PANEL_SIZE + position;
 }
 
@@ -46,6 +57,10 @@ void displayBegin() {
   FastLED.setDither(DISABLE_DITHER);
   FastLED.clear(true);
 }
+
+uint8_t displayDefaultLayout() { return DEFAULT_LAYOUT; }
+uint8_t displayLayout() { return layout; }
+void displaySetLayout(uint8_t value) { layout = value; }
 
 void displayClear(uint8_t brightness) {
   FastLED.setBrightness(brightness);
