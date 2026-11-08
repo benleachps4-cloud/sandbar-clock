@@ -4,6 +4,8 @@ A shelf clock built from two 8x8 WS2812B panels and an ESP32-C3 SuperMini, with 
 
 ![The assembled case](case/preview/front.png)
 
+**Want to make one?** Follow the [build guide](BUILD_GUIDE.md) for the parts list, printing, wiring, firmware and assembly.
+
 ## What's here
 
 - `firmware/`: the PlatformIO project. See [its README](firmware/README.md) for wiring, setup and the list of faces.
